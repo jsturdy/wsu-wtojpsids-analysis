@@ -9,6 +9,8 @@ cmsrel CMSSW_5_3_18
 cd CMSSW_5_3_18/src
 cmesnv
 ###Core (PAT) packages
+
+Instructions taken from the [official PAT recipe for 53X](https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuidePATReleaseNotes52X)
 ```
 git cms-addpkg PhysicsTools/PatAlgos
 git cms-addpkg CommonTools/Utils
@@ -36,4 +38,9 @@ cp /afs/cern.ch/user/s/sturdy/work/public/WSUAnalysis/W*.dec $CMSSW_BASE/src/Gen
 git clone git@github.com:jsturdy/wsu-wtojpsids-analysis.git
 ```
 
+###Build code
+```
+scram b -j8
+```
 
+##
