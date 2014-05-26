@@ -4,10 +4,12 @@ wsu-wtojpsids-analysis
 #WSU W to J/Psi+Ds analysis code repository
 
 ##Current checkout (including PAT)
-
+```
 cmsrel CMSSW_5_3_18
 cd CMSSW_5_3_18/src
 cmesnv
+```
+
 ###Core (PAT) packages
 
 Instructions taken from the [official PAT recipe for 53X](https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuidePATReleaseNotes52X)
