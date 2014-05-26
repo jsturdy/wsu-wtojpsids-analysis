@@ -26,11 +26,14 @@ git cms-merge-topic -u cms-analysis-tools:5_3_16_patch1-testNewTau
 
 
 ###Core (generation) packages
-```git cms-addpkg GeneratorInterface/ExternalDecays
-
-cp /afs/cern.ch/user/s/sturdy/work/public/WSUAnalysis/W*.dec $CMSSW_BASE/src/GeneratorInterface/ExternalDecays/data/```
+```
+git cms-addpkg GeneratorInterface/ExternalDecays
+cp /afs/cern.ch/user/s/sturdy/work/public/WSUAnalysis/W*.dec $CMSSW_BASE/src/GeneratorInterface/ExternalDecays/data/
+```
 
 ###Analysis code
-```git clone git@github.com:jsturdy/wsu-wtojpsids-analysis.git```
+```
+git clone git@github.com:jsturdy/wsu-wtojpsids-analysis.git
+```
 
 
