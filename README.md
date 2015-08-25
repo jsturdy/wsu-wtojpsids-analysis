@@ -45,4 +45,7 @@ git clone git@github.com:jsturdy/wsu-wtojpsids-analysis.git
 scram b -j8
 ```
 
+## Notes on creating candidates
+https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookParticleCandidates#RecoAod
+https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideCandidateModules#Create_Candidate_Adapters_from_A
 ##

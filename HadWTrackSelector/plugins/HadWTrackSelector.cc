@@ -11,7 +11,7 @@
 
 #include "WSUHadronicW/HadWTrackSelector/interface/HadWTrackSelector.h"
 
-
+#include "DataFormats/RecoCandidate/interface/RecoCandidate.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "DataFormats/Common/interface/AssociationMap.h"
@@ -60,19 +60,21 @@ HadWTrackSelector::~HadWTrackSelector()
 void
 HadWTrackSelector::produce(edm::Event& ev, const edm::EventSetup& es)
 {
-  using namespace edm;
-  using namespace reco;
+  // using namespace edm;
+  // using namespace reco;
 
-  edm::Handle<> pIn;
-  ev.getByLabel("example",pIn);
+  edm::Handle<> vertices;
+  ev.getByLabel(m_vertexTag,vertices);
+
+  edm::Handle<> jPsiCands;
+  ev.getByLabel(m_jPsiCandsTag,jPsiCands);
+
+  edm::Handle<> allTracks;
+  ev.getByLabel(m_tracksTag,allTracks);
+
   /* This is an event example
   edm::Handle<ExampleData> pIn;
   ev.getByLabel("example",pIn);
-
-  //Use the ExampleData to create an ExampleData2 which 
-  // is put into the Event
-  std::unique_ptr<ExampleData2> pOut(new ExampleData2(*pIn));
-  ev.put(std::move(pOut));
   */
 
   /* this is an EventSetup example
@@ -81,6 +83,51 @@ HadWTrackSelector::produce(edm::Event& ev, const edm::EventSetup& es)
   es.get<SetupRecord>().get(pSetup);
   */
  
+  /*
+  //Use the ExampleData to create an ExampleData2 which 
+  // is put into the Event
+  std::unique_ptr<ExampleData2> pOut(new ExampleData2(*pIn));
+  ev.put(std::move(pOut));
+  */
+
+  //what to do if there are multiple J/Psi candidates?  do a loop for each one and create a collection and association map?
+  
+  std::vector<reco::Tracks> allOutTracks;      // all tracks passing the minimum pT cut and vertex matching
+  std::vector<reco::Tracks> isolatedOutTracks; // all tracks that are, in addition, well isolated from the J/Psi candidate
+  std::vector<reco::Tracks> candidateOutTracks; // all tracks that are in a cone around our seed track
+
+  //match the J/Psi to the correct vertex
+  /*reco::Vertex eventPV = findEventPV(vertices, jPsiCands);*/
+
+  //do some processing
+  for (auto track = allTracks->begin(); track != allTracks->end(); ++track) {
+    if (track->pt() > m_minPt) {
+      //check the vertex matching
+      if (trackToJPsiVertex(track,eventPV)) {
+	allOutTracks.push_back(*track);
+	
+      }
+    }
+  }
+  
+  //put the products into the event
+  std::unique_ptr<reco::TrackCollection> allTracksOut1(new reco::TrackCollection(*allOutTracks));
+  ev.put(std::move(allTracksOut1));
+
+  std::unique_ptr<reco::TrackCollection> isolatedTracksOut1(new reco::TrackCollection(*isolatedOutTracks));
+  ev.put(std::move(isolatedTracksOut1));
+
+  std::unique_ptr<reco::TrackCollection> candidateTracksOut1(new reco::TrackCollection(*candidateOutTracks));
+  ev.put(std::move(candidateTracksOut1));
+
+
+  
+  //put tracks into a(several) reco::Candidate collection (need a mass hypothesis for each collection...)
+  std::unique_ptr<edm::OwnVector<reco::Candidate> > tracksOut2(new edm::OwnVector<reco::Candidate>(*outTracks));
+  ev.put(std::move(tracksOut2));
+
+  std::unique_ptr<reco::CandidateCollection> tracksOut3(new reco::CandidateCollection(*outTracks));
+  ev.put(std::move(tracksOut3));
 }
 
 // ------------ method called once each stream before processing any runs, lumis or events  ------------

@@ -14,7 +14,7 @@ hadWSelector = cms.EDProducer('HadWTrackSelector',
     maxTrkD0  = cms.double(),
 )
 
-
+## cand view combiner vs cand combiner?
 jPsiCands = cms.EDProducer("CandViewCombiner",
     decay = cms.string("muons@+ muons@-"),
     cut = cms.string("86.0 < mass < 96.0"),
@@ -34,4 +34,9 @@ jPsiCands = cms.EDProducer("CandViewCombiner",
 bestMuons = cms.EDProducer("CandSelector",
     src = cms.InputTag("allMuons"),
     cut = cms.string("pt > 10 & abs( eta ) < 2")
+)
+
+piPlusTracks = cms.EDProducer("ConcreteChargedCandidateProducer",
+    src = cms.InputTag("ctfWithMaterialTracks"),
+    particleType = cms.string("pi+")
 )

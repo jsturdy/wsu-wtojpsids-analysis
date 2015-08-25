@@ -1,0 +1,8 @@
+*
+!*.py
+__init__.py
+!*.cc
+!*.h
+!*.xml
+!*.md
+!.gitignore

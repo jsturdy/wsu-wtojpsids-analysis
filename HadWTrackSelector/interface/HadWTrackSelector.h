@@ -19,6 +19,32 @@
    * Byproducts should be isolated as they will not be colour connected to the J/Psi
    * 
 
+
+
+   **** Rob's algorithm description ****
+   In the decay W+ --> J/psi + c s-bar, the likely hadronization of the c s-bar system is unknown.
+   The idea is to have a simple, fast selection algorithm  that produces a reasonably sized
+   PATuple for further analysis.   The algorithm can be broken down as follows:
+
+   1.  Find the J/psi from the trigger, passing minimum pT requirement (about 15GeV)
+       and isolation from other activity in the event in a cone of size Delta R = 0.3.
+   2.  Find the primary vertex the J/psi originates from.
+   3.  Create a list of the charged tracks that come from the same primary vertex (within an appropriate error).
+   4.  Can also create a list of potential s, s, and s with pT > pTmin (about 1GeV).
+   5.  Require a seed track with pT>seedpTmin (about 5GeV) that lies outside a cone of Delta R = 1.0 from the J/psi.
+   6.  Require additional charged or neutrals with pT>pTmin that lie outside the cone of Delta R = 1.o from the J/psi.
+   7.  Ask that the invariant mass of the J/psi + seed + other tracks exceed a threshold (about 40GeV). 
+   8.  (optional) May want to require the additional tracks to be isolated from non-selected tracks.
+   9.  (optional) Require that two or more of the additional tracks form a good secondary vertex separated
+       from the primary.  The invariant mass of the vertex tracks must be less than massMax (about 2.2GeV)
+       when the tracks are treated as pions.
+   
+   The PATuple should contain (modify as appropriate):
+   1.  General event info.
+   2.  List of primary vertices.
+   3.  List of charged tracks, s, s, and s from the J/psi primary vertex.
+   4.  Muon collection (for the J/psi).
+   5.  Trigger collection.pi0LambdaK0shortpi0LambdaKshort
 */
 //
 // Original Author:  Jared Sturdy
