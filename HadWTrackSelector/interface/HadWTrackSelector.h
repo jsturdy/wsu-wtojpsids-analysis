@@ -31,8 +31,10 @@
    2.  Find the primary vertex the J/psi originates from.
    3.  Create a list of the charged tracks that come from the same primary vertex (within an appropriate error).
    4.  Can also create a list of potential s, s, and s with pT > pTmin (about 1GeV).
-   5.  Require a seed track with pT>seedpTmin (about 5GeV) that lies outside a cone of Delta R = 1.0 from the J/psi.
-   6.  Require additional charged or neutrals with pT>pTmin that lie outside the cone of Delta R = 1.o from the J/psi.
+   5.  Require a seed track with pT>seedpTmin (about 5GeV) that lies outside a cone of 
+       Delta R = 1.0 from the J/psi.
+   6.  Require additional charged or neutrals with pT > pTmin that lie outside the cone of
+       Delta R = 1.0 from the J/psi.
    7.  Ask that the invariant mass of the J/psi + seed + other tracks exceed a threshold (about 40GeV). 
    8.  (optional) May want to require the additional tracks to be isolated from non-selected tracks.
    9.  (optional) Require that two or more of the additional tracks form a good secondary vertex separated
@@ -42,9 +44,9 @@
    The PATuple should contain (modify as appropriate):
    1.  General event info.
    2.  List of primary vertices.
-   3.  List of charged tracks, s, s, and s from the J/psi primary vertex.
+   3.  List of charged tracks, K0short's, Lambda's, and pi0's (photons?) from the J/psi primary vertex
    4.  Muon collection (for the J/psi).
-   5.  Trigger collection.pi0LambdaK0shortpi0LambdaKshort
+   5.  Trigger collection
 */
 //
 // Original Author:  Jared Sturdy
@@ -66,6 +68,16 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/StreamID.h"
 
+#include "DataFormats/RecoCandidate/interface/RecoCandidate.h"
+#include "DataFormats/Candidate/interface/Candidate.h"
+
+#include "DataFormats/PatCandidates/interface/CompositeCandidate.h"
+
+#include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/TrackReco/interface/TrackFwd.h"
+
+#include "DataFormats/VertexReco/interface/Vertex.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
 
 //
 // class declaration
@@ -77,6 +89,15 @@ class HadWTrackSelector : public edm::stream::EDProducer<> {
     ~HadWTrackSelector();
 
     static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
+
+    //reco::Vertex object
+    reco::Vertex findEventPV(reco::VertexCollection vertices, reco::CompositeCandidate jPsiCand);
+    ////reference to reco::Vertex in a collection
+    //reco::VertexRef findEventPV(reco::VertexCollection vertices, reco::CompositeCandidate jPsiCand);
+    ////vector of references to objects in the same reco::VertexCollection, seems most interesting, try this first
+    //reco::VertexRefVector findEventPV(reco::VertexCollection vertices, reco::CompositeCandidate jPsiCand);
+
+    bool trackToJPsiVertex(reco::Track track, reco::Vertex vertex);
 
   private:
     virtual void beginStream(edm::StreamID) override;
@@ -90,16 +111,17 @@ class HadWTrackSelector : public edm::stream::EDProducer<> {
     
     // ----------member data ---------------------------
     edm::InputTag m_vertexTag;    // input tag for vertex collection
-    edm::InputTag m_jpsiCandsTag; // input tag for J/Psi candidates collection
+    edm::InputTag m_jPsiCandsTag; // input tag for J/Psi candidates collection
     edm::InputTag m_tracksTag;    // input tag for track collection
     
     std::vector<std::string> m_modes; // decay modes to consider
     
-    double m_minMass;   // minimum invariant mass for consideration
-    double m_seedPt;    // minimum pT for a seed track to be considered
-    double m_minTrkPt;  // minimum pT for a track to be saved
-    double m_isoDR_;    // cone size for isolation requirement
-    double m_maxDxy_;   // maximum Dxy impact parameter between tracks and selected PV
-    double m_maxDz_;    // maximum Dz impact parameter between tracks and selected PV
-    double m_maxD0_;    // maximum D0 impact parameter between tracks and selected PV
+    double m_minMass;  // minimum invariant mass for consideration
+    double m_seedPt;   // minimum pT for a seed track to be considered
+    double m_minDR;    // separation between J/Psi and tracks
+    double m_isoDR;    // cone size for isolation requirement
+    double m_minTrkPt; // minimum pT for a track to be saved
+    double m_maxDxy;   // maximum Dxy impact parameter between tracks and selected PV
+    double m_maxDz;    // maximum Dz impact parameter between tracks and selected PV
+    double m_maxD0;    // maximum D0 impact parameter between tracks and selected PV
 };
