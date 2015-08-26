@@ -2,17 +2,17 @@ import FWCore.ParameterSet.Config as cms
 
 hadWSelector = cms.EDProducer('HadWTrackSelector',
     vertexCol = cms.InputTag(),
-    jpsiCands = cms.InputTag(),
+    jpsiCands = cms.InputTag("jPsiMuMuCands"),
     tracks    = cms.InputTag(),
     mode      = cms.vstring(""),
     minMass   = cms.double(40.0),
     seedPt    = cms.double(5.0),
     minDR     = cms.double(1.0),
-    isoDR     = cms.double(0.5),
+    isoDR     = cms.double(0.3),
     minTrkPt  = cms.double(1.0),
-    maxTrkDxy = cms.double(),
-    maxTrkDz  = cms.double(),
-    maxTrkD0  = cms.double(),
+    maxTrkDxy = cms.double(5.),
+    maxTrkDz  = cms.double(5.),
+    maxTrkD0  = cms.double(5.),
 )
 
 ## cand view combiner vs cand combiner?, add dR isolation to J/Psi?

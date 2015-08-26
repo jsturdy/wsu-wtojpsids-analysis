@@ -30,7 +30,7 @@
        and isolation from other activity in the event in a cone of size Delta R = 0.3.
    2.  Find the primary vertex the J/psi originates from.
    3.  Create a list of the charged tracks that come from the same primary vertex (within an appropriate error).
-   4.  Can also create a list of potential s, s, and s with pT > pTmin (about 1GeV).
+   4.  Can also create a list of potential K0short's, Lambda's, and pi0's with pT > pTmin (about 1GeV).
    5.  Require a seed track with pT>seedpTmin (about 5GeV) that lies outside a cone of 
        Delta R = 1.0 from the J/psi.
    6.  Require additional charged or neutrals with pT > pTmin that lie outside the cone of
@@ -97,7 +97,7 @@ class HadWTrackSelector : public edm::stream::EDProducer<> {
     ////vector of references to objects in the same reco::VertexCollection, seems most interesting, try this first
     //reco::VertexRefVector findEventPV(reco::VertexCollection vertices, reco::CompositeCandidate jPsiCand);
 
-    bool trackToJPsiVertex(reco::Track track, reco::Vertex vertex);
+    bool trackToJPsiVertex(const reco::Track& track, const reco::Vertex& vertex);
 
   private:
     virtual void beginStream(edm::StreamID) override;
@@ -118,9 +118,9 @@ class HadWTrackSelector : public edm::stream::EDProducer<> {
     
     double m_minMass;  // minimum invariant mass for consideration
     double m_seedPt;   // minimum pT for a seed track to be considered
+    double m_minTrkPt; // minimum pT for a track to be saved
     double m_minDR;    // separation between J/Psi and tracks
     double m_isoDR;    // cone size for isolation requirement
-    double m_minTrkPt; // minimum pT for a track to be saved
     double m_maxDxy;   // maximum Dxy impact parameter between tracks and selected PV
     double m_maxDz;    // maximum Dz impact parameter between tracks and selected PV
     double m_maxD0;    // maximum D0 impact parameter between tracks and selected PV

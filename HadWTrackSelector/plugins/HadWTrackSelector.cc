@@ -24,6 +24,7 @@ HadWTrackSelector::HadWTrackSelector(const edm::ParameterSet& pset):
   m_minMass( pset.getParameter<double>("minMass"  )),
   m_seedPt ( pset.getParameter<double>("seedPt"   )),
   m_minTrkPt(pset.getParameter<double>("minTrkPt" )),
+  m_minDR(   pset.getParameter<double>("minDR"    )),
   m_isoDR(   pset.getParameter<double>("isoDR"    )),
   m_maxDxy(  pset.getParameter<double>("maxTrkDxy")),
   m_maxDz(   pset.getParameter<double>("maxTrkDz" )),
@@ -91,7 +92,7 @@ void HadWTrackSelector::produce(edm::Event& ev, const edm::EventSetup& es)
       //check the vertex matching
       if (trackToJPsiVertex(*track,eventPV)) {
 	allOutTracks.push_back(*track);	
-	if (math.deltaR(track->p4(),(*jPsiCands)[0]->p4()) > m_minDR)
+	if (reco::deltaR(*track,(*jPsiCands)[0]) > m_minDR)
 	  isolatedOutTracks.push_back(*track);	  
       }
     }
@@ -130,24 +131,62 @@ reco::Vertex HadWTrackSelector::findEventPV(reco::VertexCollection vertices, rec
 //reco::VertexRefVector findEventPV(reco::VertexCollection vertices, reco::CompositeCandidate jPsiCand) 
 {
   reco::Vertex bestMatch;
+  //bool betterMatch = false;
   //double minDR  = 1000.;
-  //double minDxy = 1000.;
-  //double minDz  = 1000.;
-  //double minD0  = 1000.;
+  double minDxy = m_maxDxy;
+  double minDz  = m_maxDz;
+  //double minD0  = m_maxD0;
+
   for (auto vertex = vertices.begin(); vertex != vertices.end(); ++vertex) {
     //jPsiCand.dau1;
     //jPsiCand.dau2;
-    //minDR  = 1000.;
-    //minDxy = 1000.;
-    //minDz  = 1000.;
-    //minD0  = 1000.;
-    continue;
+    /*
+      //maybe instead use:
+      //virtual const Point & vertex() const  = 0;
+      ///// x coordinate of vertex position
+      //virtual double vx() const  = 0;
+      ///// y coordinate of vertex position
+      //virtual double vy() const  = 0;
+      ///// z coordinate of vertex position
+      //virtual double vz() const  = 0;
+      
+      double tmp_minDxy = std::abs(jPsiCand.bestTrack()->dxy(vertex->position()));
+      double tmp_minDz  = std::abs(jPsiCand.bestTrack()->dz(vertex->position()));
+      double tmp_minD0  = std::abs(jPsiCand.bestTrack()->d0(vertex->position()));
+    */
+    double tmp1_minDxy = std::abs(jPsiCand.daughter(0)->bestTrack()->dxy(vertex->position()));
+    double tmp1_minDz  = std::abs(jPsiCand.daughter(0)->bestTrack()->dz(vertex->position()));
+    //double tmp1_minD0  = std::abs(jPsiCand.daughter(0)->bestTrack()->d0(vertex->position()));
+
+    /*      
+    double tmp2_minDxy = std::abs(jPsiCand.daughter(1)->bestTrack()->dxy(vertex->position()));
+    double tmp2_minDz  = std::abs(jPsiCand.daughter(1)->bestTrack()->dz(vertex->position()));
+    double tmp2_minD0  = std::abs(jPsiCand.daughter(1)->bestTrack()->d0(vertex->position()));
+    */
+    if ((tmp1_minDxy < minDxy) && 
+	//(tmp1_minD0 < minD0) &&
+	(tmp1_minDz < minDz)) {
+      //betterMatch = true;
+      bestMatch = *vertex;
+      //minDR  = 1000.;
+      minDxy = tmp1_minDxy;
+      //minD0  = tmp1_minD0;
+      minDz  = tmp1_minDz;
+    }
+    //continue;
   }
   return bestMatch;
 }
 
-bool HadWTrackSelector::trackToJPsiVertex(reco::Track track, reco::Vertex vertex) 
+bool HadWTrackSelector::trackToJPsiVertex(const reco::Track& track, const reco::Vertex& vertex) 
 {
+  //compute
+  if ((std::abs(track.dxy(vertex.position())) < m_maxDxy) &&
+      //(std::abs(track.d0(vertex.position()))  < m_maxD0 ) &&
+      (std::abs(track.dz(vertex.position()))  < m_maxDz))
+    return true;
+  
+  //were unable to match track to the supplied vertex, within parameters
   return false;
 }
 
