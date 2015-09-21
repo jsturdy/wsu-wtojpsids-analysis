@@ -1,9 +1,9 @@
 import FWCore.ParameterSet.Config as cms
 
 hadWSelector = cms.EDProducer('HadWTrackSelector',
-    vertexCol = cms.InputTag(),
+    vertexCol = cms.InputTag("offlinePrimaryVertices"),
     jpsiCands = cms.InputTag("jPsiMuMuCands"),
-    tracks    = cms.InputTag(),
+    tracks    = cms.InputTag("generalTracks"),
     mode      = cms.vstring(""),
     minMass   = cms.double(40.0),
     seedPt    = cms.double(5.0),
@@ -13,31 +13,5 @@ hadWSelector = cms.EDProducer('HadWTrackSelector',
     maxTrkDxy = cms.double(5.),
     maxTrkDz  = cms.double(5.),
     maxTrkD0  = cms.double(5.),
-)
-
-## cand view combiner vs cand combiner?, add dR isolation to J/Psi?
-jPsiMuMuCands = cms.EDProducer("CandViewCombiner",
-    decay = cms.string("muons@+ muons@-"),
-    cut = cms.string("3.090 < mass < 3.190 & pt > 15.0"),
-    name = cms.string('jPsi'),
-    roles = cms.vstring('dau1', 'dau2')
-)
-
-
-jPsiEECands = cms.EDProducer("CandViewCombiner",
-    decay = cms.string("electrons@+ electrons@-"),
-    cut = cms.string("3.090 < mass < 3.190 & pt > 15.0"),
-    name = cms.string('jPsi'),
-    roles = cms.vstring('dau1', 'dau2')
-)
-
-
-bestMuons = cms.EDProducer("CandSelector",
-    src = cms.InputTag("allMuons"),
-    cut = cms.string("pt > 10 & abs( eta ) < 2")
-)
-
-piPlusTracks = cms.EDProducer("ConcreteChargedCandidateProducer",
-    src = cms.InputTag("ctfWithMaterialTracks"),
-    particleType = cms.string("pi+")
+    debug     = cms.bool(False),
 )

@@ -17,9 +17,9 @@
 
 
 HadWTrackSelector::HadWTrackSelector(const edm::ParameterSet& pset):
-  m_vertexTag(   pset.getParameter<edm::InputTag>("vertexCol")),
-  m_jPsiCandsTag(pset.getParameter<edm::InputTag>("jpsiCands")),
-  m_tracksTag(   pset.getParameter<edm::InputTag>("tracks"   )),
+  m_vertexTag(   consumes<std::vector<reco::Vertex> > (pset.getParameter<edm::InputTag>("vertexCol"))),
+  m_jPsiCandsTag(consumes<std::vector<reco::CompositeCandidate> > (pset.getParameter<edm::InputTag>("jpsiCands"))),
+  m_tracksTag(   consumes<std::vector<reco::Track> > (pset.getParameter<edm::InputTag>("tracks"   ))),
   m_modes(       pset.getParameter<std::vector<std::string> >("mode")),
   m_minMass( pset.getParameter<double>("minMass"  )),
   m_seedPt ( pset.getParameter<double>("seedPt"   )),
@@ -28,14 +28,15 @@ HadWTrackSelector::HadWTrackSelector(const edm::ParameterSet& pset):
   m_isoDR(   pset.getParameter<double>("isoDR"    )),
   m_maxDxy(  pset.getParameter<double>("maxTrkDxy")),
   m_maxDz(   pset.getParameter<double>("maxTrkDz" )),
-  m_maxD0(   pset.getParameter<double>("maxTrkD0" ))
+  m_maxD0(   pset.getParameter<double>("maxTrkD0" )),
+  m_debug(   pset.getParameter<bool>("debug" ))
 {
   produces<reco::TrackCollection>("allTracks");
   produces<reco::TrackCollection>("isoTracks");
   produces<reco::TrackCollection>("candTracks");
 
-  produces<edm::OwnVector<reco::Candidate> >();
-  produces<reco::CandidateCollection>();
+  //produces<edm::OwnVector<reco::Candidate> >();
+  //produces<reco::CandidateCollection>();
   
   /*
     produces<ExampleData2>();
@@ -63,28 +64,74 @@ void HadWTrackSelector::produce(edm::Event& ev, const edm::EventSetup& es)
   // using namespace reco;
 
   edm::Handle<reco::VertexCollection> vertices;
-  ev.getByLabel(m_vertexTag,vertices);
+  ev.getByToken(m_vertexTag,vertices);
 
   edm::Handle<std::vector<reco::CompositeCandidate> > jPsiCands;
-  ev.getByLabel(m_jPsiCandsTag,jPsiCands);
+  ev.getByToken(m_jPsiCandsTag,jPsiCands);
 
   edm::Handle<reco::TrackCollection> allTracks;
-  ev.getByLabel(m_tracksTag,allTracks);
+  ev.getByToken(m_tracksTag,allTracks);
 
   /* this is an EventSetup example
   //Read SetupData from the SetupRecord in the EventSetup
   ESHandle<SetupData> pSetup;
   es.get<SetupRecord>().get(pSetup);
   */
- 
+  
+  if (!(jPsiCands.isValid() && vertices.isValid() && allTracks.isValid())) {
+    if (m_debug)
+      std::cout << "vertices.isValid() "  << vertices.isValid()  << std::endl
+		<< "jPsiCands.isValid() " << jPsiCands.isValid() << std::endl
+		<< "allTracks.isValid() " << allTracks.isValid() << std::endl
+		<< "found an invalid handle, not completing processing" << std::endl;
+    
+    //put the products into the event
+    std::unique_ptr<reco::TrackCollection> allTracksOut1(new reco::TrackCollection());
+    ev.put(std::move(allTracksOut1),"allTracks");
+
+    std::unique_ptr<reco::TrackCollection> isolatedTracksOut1(new reco::TrackCollection());
+    ev.put(std::move(isolatedTracksOut1),"isoTracks");
+
+    std::unique_ptr<reco::TrackCollection> candidateTracksOut1(new reco::TrackCollection());
+    ev.put(std::move(candidateTracksOut1),"candTracks");
+
+    return;
+  }
+
+  if ((!jPsiCands->size()) || (!vertices->size()) || (!allTracks->size())) {
+    if (m_debug)
+      std::cout << "vertices->size() "  << vertices->size()  << std::endl
+		<< "jPsiCands->size() " << jPsiCands->size() << std::endl
+		<< "allTracks->size() " << allTracks->size() << std::endl
+		<< "found an empty collection, not completing processing" << std::endl;
+    
+    //put the products into the event
+    std::unique_ptr<reco::TrackCollection> allTracksOut1(new reco::TrackCollection());
+    ev.put(std::move(allTracksOut1),"allTracks");
+
+    std::unique_ptr<reco::TrackCollection> isolatedTracksOut1(new reco::TrackCollection());
+    ev.put(std::move(isolatedTracksOut1),"isoTracks");
+
+    std::unique_ptr<reco::TrackCollection> candidateTracksOut1(new reco::TrackCollection());
+    ev.put(std::move(candidateTracksOut1),"candTracks");
+
+    return;
+  }
+
   //what to do if there are multiple J/Psi candidates?  do a loop for each one and create a collection and association map?
   
   reco::TrackCollection allOutTracks;       // all tracks passing the minimum pT cut and vertex matching
   reco::TrackCollection isolatedOutTracks;  // all tracks that are, in addition, well isolated from the J/Psi candidate
   reco::TrackCollection candidateOutTracks; // all tracks that are in a cone around our seed track
 
+  std::cout << "vertices->size() "  << vertices->size()  << std::endl
+	    << "jPsiCands->size() " << jPsiCands->size() << std::endl
+	    << "allTracks->size() " << allTracks->size() << std::endl
+	    << std::endl;
+  
   //match the J/Psi to the correct vertex
   reco::Vertex eventPV = findEventPV(*vertices, (*jPsiCands)[0]);
+  std::cout << "found the eventPV" << std::endl;
 
   //do some processing
   for (auto track = allTracks->begin(); track != allTracks->end(); ++track) {
@@ -97,23 +144,36 @@ void HadWTrackSelector::produce(edm::Event& ev, const edm::EventSetup& es)
       }
     }
   }
+  std::cout << "Looped through the tracks" << std::endl;
 
   //isolatedOutTracks.sort(byPt);
-  reco::Track seedTrack = isolatedOutTracks.at(0);
-  for (auto track = isolatedOutTracks.begin(); track != isolatedOutTracks.end(); ++track) {
-    
+  if (isolatedOutTracks.size()) {
+    auto track = isolatedOutTracks.begin();
+    reco::Track seedTrack = *track;
+    ++track;
+    for (; track != isolatedOutTracks.end(); ++track) {
+      
+    }
   }
+  std::cout << "Looped through the isolated tracks" << std::endl;
 
+  std::cout << "allOutTracks.size() "       << allOutTracks.size()       << std::endl
+	    << "isolatedOutTracks.size() "  << isolatedOutTracks.size()  << std::endl
+	    << "candidateOutTracks.size() " << candidateOutTracks.size() << std::endl
+	    << std::endl;
   
   //put the products into the event
   std::unique_ptr<reco::TrackCollection> allTracksOut1(new reco::TrackCollection(allOutTracks));
-  ev.put(std::move(allTracksOut1));
+  ev.put(std::move(allTracksOut1),"allTracks");
+  std::cout << "put the selected tracks" << std::endl;
 
   std::unique_ptr<reco::TrackCollection> isolatedTracksOut1(new reco::TrackCollection(isolatedOutTracks));
-  ev.put(std::move(isolatedTracksOut1));
+  ev.put(std::move(isolatedTracksOut1),"isoTracks");
+  std::cout << "put the isolated tracks" << std::endl;
 
   std::unique_ptr<reco::TrackCollection> candidateTracksOut1(new reco::TrackCollection(candidateOutTracks));
-  ev.put(std::move(candidateTracksOut1));
+  ev.put(std::move(candidateTracksOut1),"candTracks");
+  std::cout << "put the candidate tracks" << std::endl;
 
 
   /*
@@ -185,7 +245,7 @@ bool HadWTrackSelector::trackToJPsiVertex(const reco::Track& track, const reco::
       //(std::abs(track.d0(vertex.position()))  < m_maxD0 ) &&
       (std::abs(track.dz(vertex.position()))  < m_maxDz))
     return true;
-  
+
   //were unable to match track to the supplied vertex, within parameters
   return false;
 }

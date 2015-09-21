@@ -110,9 +110,9 @@ class HadWTrackSelector : public edm::stream::EDProducer<> {
     //virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&) override;
     
     // ----------member data ---------------------------
-    edm::InputTag m_vertexTag;    // input tag for vertex collection
-    edm::InputTag m_jPsiCandsTag; // input tag for J/Psi candidates collection
-    edm::InputTag m_tracksTag;    // input tag for track collection
+    edm::EDGetTokenT<std::vector<reco::Vertex> > m_vertexTag;    // input tag for vertex collection
+    edm::EDGetTokenT<std::vector<reco::CompositeCandidate> > m_jPsiCandsTag; // input tag for J/Psi candidates collection
+    edm::EDGetTokenT<std::vector<reco::Track> > m_tracksTag;    // input tag for track collection
     
     std::vector<std::string> m_modes; // decay modes to consider
     
@@ -124,4 +124,5 @@ class HadWTrackSelector : public edm::stream::EDProducer<> {
     double m_maxDxy;   // maximum Dxy impact parameter between tracks and selected PV
     double m_maxDz;    // maximum Dz impact parameter between tracks and selected PV
     double m_maxD0;    // maximum D0 impact parameter between tracks and selected PV
+    bool m_debug;      // print out debug information or not
 };
